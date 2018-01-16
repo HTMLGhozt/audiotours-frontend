@@ -1,11 +1,22 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App.jsx';
 import { BrowserRouter as Router } from 'react-router-dom';
-// import registerServiceWorker from './registerServiceWorker';
+// import { createStore, applyMiddleware } from 'redux';
+// import { Provider } from 'react-redux';
+// import ReduxPromise from 'redux-promise';
+
+import App from './App.jsx';
+import './index.css';
+
+// const reducers = () => {}; // temp
+
+// const store = (() => applyMiddleware(ReduxPromise)(createStore))(reducers);
 
 ReactDOM.render(
-<Router><App /></Router>,
-document.getElementById('root'));
-// registerServiceWorker();
+  // <Provider store={store}>
+    <Router>
+      <App />
+    </Router>
+ /* </Provider>*/,
+  document.getElementById('root'),
+);
