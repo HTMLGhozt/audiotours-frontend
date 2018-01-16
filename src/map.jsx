@@ -6,64 +6,92 @@ export default class GMap extends Component {
   };
   constructor(props) {
     super(props);
-    this.state = { zoom: 10 };
-    this.handleZoomChange = this.handleZoomChange.bind(this);
+    this.state = {
+      zoom: 9,
+      markers: [],
+      initialCenter: this.props.initialCenter,
+      selectedMarker: { name: '', lat: null, lng: null },
+    };
+    this.createMarker = this.createMarker.bind(this);
+    this.addMarker = this.addMarker.bind(this);
   }
 	render = () => (
-    <div
-      className='GMap-canvas'
-      ref='mapCanvas'
-      style={{width: 500+'px', height: 500+'px'}}
-    ></div>
+    <div>
+      <div
+        className='GMap-canvas'
+        ref='mapCanvas'
+        style={{width: 1000+'px', height: 500+'px'}}
+      ></div>
+      {/* <span>selected Marker {this.state.selectedMarker.name + ': ' + this.state.selectedMarker.lat + ' ' + this.state.selectedMarker.lng}</span> */}
+      <button onClick={this.addMarker}>Add Marker</button>
+    </div>
   );
 
   componentDidMount() {
-    // create the map, marker and infoWindow after the component has
-    // been rendered because we need to manipulate the DOM for Google
     this.map = this.createMap();
-    this.marker = this.createMarker();
-    this.infoWindow = this.createInfoWindow();
-  
-    // have to define google maps event listeners here too
-    // because we can't add listeners on the map until its created
-    window.google.maps.event.addListener(this.map, 'zoom_changed', this.handleZoomChange);
+
+    const markers = this.props.markers.map(this.createMarker);
+    this.setState({ markers });
+
+    // this.infoWindow = this.createInfoWindow();
+
+    window.google.maps.event.addListener(
+      this.map,
+      'zoom_changed',
+      () => this.setState({ zoom: this.map.getZoom() }),
+    );
   }
 
   componentDidUnMount() {
     window.google.maps.event.clearListeners(this.map, 'zoom_changed');
+    this.state.markers.forEach(marker => marker.event.clearListeners('dragend'));
   }
-
   createMap() {
-    const mapOptions = {
-      zoom: this.state.zoom,
-      center: this.mapCenter(),
-    };
-    return new window.google.maps.Map(this.refs.mapCanvas, mapOptions);
-  }
+    const { zoom, initialCenter } = this.state;
 
-  mapCenter() {
-    const { lat, lng } = this.props.initialCenter;
-    return new window.google.maps.LatLng( lat, lng );
+    return new window.google.maps.Map(
+      this.refs.mapCanvas,
+      {
+        zoom,
+        center: new window.google.maps.LatLng(initialCenter),
+      },
+    );
   }
-
-  createMarker() {
-    return new window.google.maps.Marker({
-      position: new window.google.maps.LatLng({ lng: -91.1056957, lat: 29.9718272 }),
+  addMarker(e) {
+    e.preventDefault();
+    const center = this.map.getCenter();
+    this.props.addMarker({ title: 'new Marker', lat: center.lat(), lng: center.lng() });
+    this.componentDidMount();
+    // this.setState({ markers: [...this.state.markers, { title: 'new Marker', lat: center.lat(), lng: center.lng() }] });
+    // this.props.addMarker({ title: 'new Marker', lat: center.lat(), lng: center.lng() })
+    // this.componentDidMount();
+  }
+  createMarker(options) {
+    const { lat, lng, title } = options;
+    const marker = new window.google.maps.Marker({
+      position: new window.google.maps.LatLng({ lat, lng }),
       map: this.map,
+      draggable: true,
+      title,
     });
+
+    marker.addListener(
+      'dragend',
+      (e) => {
+        this.props.updateMarkers({ title: marker.title, lat: e.latLng.lat(), lng: e.latLng.lng() });
+        this.setState({ selectedMarker: { name: marker.title, lat: e.latLng.lat(), lng: e.latLng.lng() }});
+      },
+    );
+
+    return marker;
 	}
-
-  createInfoWindow() {
-    const contentString = "<div class='InfoWindow'>I'm a Window that contains Info Yay</div>"
-    return new window.google.maps.InfoWindow({
-      map: this.map,
-      anchor: this.marker,
-      content: contentString,
-    });
-  }
-
-  handleZoomChange() {
-    const zoom = this.map.getZoom();
-    this.setState({ zoom });
-  }
+  
+  // createInfoWindow() {
+  //   const contentString = "<div class='InfoWindow'>I'm a Window that contains Info Yay</div>"
+  //   return new window.google.maps.InfoWindow({
+  //     map: this.map,
+  //     anchor: this.marker,
+  //     content: contentString, 
+  //   });
+  // }
 }
