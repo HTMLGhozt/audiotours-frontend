@@ -1,0 +1,27 @@
+.module_background {
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.module_background > form {
+  background: white;
+  width: 400px;
+  height: 300px;
+  border: 1px black solid;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+.module_background > form:before {
+  content: 'Login';
+  position: absolute;
+  left: 3px;
+  top: -25px;
+  font-size: 20px;
+}
